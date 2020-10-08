@@ -16,7 +16,7 @@ pipeline {
                     input message:'是否部署到生产环境?' 
                 }
 
-                build job: 'deploy-to-production'
+                build job: 'depoly-to-production'
             }
             post {
                 success {
