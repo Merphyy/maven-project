@@ -3,31 +3,28 @@ pipeline {
     tools{
         maven 'local maven'
     }
-    stages{
-        stage('Deploy to staging'){
-            steps{
-                build job:'deploy-to-staging'
-            }
-        }
-
-        stage ('Deploy to Production'){
-            steps{
-                timeout(time:5, unit:'DAYS'){
-                    input message:'是否部署到生产环境?' 
+    parameters{
+        string(name: 'tomcat_dev', defaultValue: '3.128.172.143', description: 'Staging Server')
+        string(name: 'tomcat_prod', defaultValue: '3.21.228.219', description: 'Production Server')
+    }
+    triggers {
+         pollSCM('* * * * *')
+     }
+     stages{
+     stage ('Deployments'){
+            parallel{
+                stage ('Deploy to Staging'){
+                    steps {
+                        sh "scp -i /Users/liuyang/Downloads/tomcat-demo.pem.txt **/target/*.war ec2-user@${params.tomcat_dev}:/var/lib/tomcat8/webapps"
+                    }
                 }
 
-                build job: 'depoly-to-production'
-            }
-            post {
-                success {
-                    echo '代码成功部署到生产环境'
-                }
-
-                failure {
-                    echo ' 部署失败'
+                stage ("Deploy to Production"){
+                    steps {
+                        sh "scp -i /U/Users/liuyang/Downloads/tomcat-demo.pem.txt **/target/*.war ec2-user@${params.tomcat_prod}:/var/lib/tomcat8/webapps"
+                    }
                 }
             }
         }
-        
     }
 }
